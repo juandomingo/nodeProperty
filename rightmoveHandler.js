@@ -98,7 +98,7 @@ module.exports = function() {
           date = date.match(/\d{1,2}\s[\w]+\s\d{4}/)[0];
           date = dateToYYYYMMDD(date);
 
-          _callback ([{type:type,bedroomno:nobed,firstprice: price ,firstdate : date, lastdate : date,postcode : postcode, agentname :agentN, agentpostCode :agentP }]);
+          _callback ({type:type,bedroomno:nobed,firstprice: price ,firstdate : date, lastdate : date,postcode : postcode, agentname :agentN, agentpostCode :agentP });
       
 
   /*        

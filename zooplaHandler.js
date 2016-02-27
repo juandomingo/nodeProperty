@@ -23,7 +23,11 @@ module.exports = function() {
   	  	});
 
         res.on('end',function(){
-            callback(getProperty(result));
+            var proplist = getProperty(result)
+            for (var i = proplist.length - 1; i >= 0; i--) {
+              callback(proplist[i]);
+            }
+            //callback();
         });
   	}).end( );
   }
