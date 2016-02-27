@@ -12,12 +12,11 @@ module.exports = function() {
   };
 
  getPropertyValues = function(link){
-    console.log(link);
     options.path = link;
     var result = "";
     http.request(options, function(res) {
 
-        console.log('STATUS: ' + res.statusCode);
+
         res.setEncoding('utf8');
         
         res.on('data', function (chunk) {
@@ -34,12 +33,11 @@ module.exports = function() {
 
   function getQuery(newPostCode){
     var link = "/property-for-sale/find.html?searchType=SALE&locationIdentifier="+ newPostCode +"&insId=2&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false";
-  	console.log(link);
     options.path = link;
   	var result = "";
   	http.request(options, function(res) {
 
-    		console.log('STATUS: ' + res.statusCode);
+
     		res.setEncoding('utf8');
     		
     		res.on('data', function (chunk) {
@@ -60,8 +58,6 @@ module.exports = function() {
     options.path = linkForPostCode;
     var result = "";
     http.request(options, function(res) {
-
-        console.log('STATUS: ' + res.statusCode);
         res.setEncoding('utf8');
         
         res.on('data', function (chunk) {
@@ -127,7 +123,6 @@ Date of listing  <div id="firstListedDateValue">29 January 2016</div>
 
     parsePropertiesLink = function(html){
         links = [];
-        console.log(html.length);
 
         crappylinks = (html.match(/\/new-homes-for-sale\/property-\d+.html/g));
         if (crappylinks === null)
