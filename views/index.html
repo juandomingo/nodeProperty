@@ -31,9 +31,9 @@
             query name <input id="queryname" autocomplete="off" />
             <input name="typeID" id="typeID" type="hidden">
             <input name="queryID" id="queryID" type="hidden">
-            value min :<input id="valueMin" autocomplete="off" />
-            value max :<input id="valueMax" autocomplete="off" />
-            rooms :<input id="selectRooms" autocomplete="off" />
+            value min :<input id="valueMin" autocomplete="off" value='1'/>
+            value max :<input id="valueMax" autocomplete="off" value='9999999999' />
+            rooms :<input id="selectRooms" autocomplete="off" value='0' />
             <button>Send</button>
 <div class="dropList">
 
@@ -76,7 +76,17 @@
         	</li>
         </ul>
 </nav>
-        <ul id="messages"></ul>
+<table id="messages" style="width:100%">
+<tr>
+    <th>Firstname</th>
+    <th>Lastname</th>
+    <th>Points</th>
+    <th>Firstname</th>
+    <th>Lastname</th>
+    <th>Points</th>
+  </tr>
+
+</table> 
 
     <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
 
@@ -103,9 +113,16 @@
         $(".messages").remove();
         for (var i = queryBResult.length - 1; i >= 0; i--) {
             if (isShowable(queryBResult[i])){
-                toShow.add(queryBResult[i]);
-                $('#messages').prepend($('<li class="messages">').text(JSON.stringtify(queryBResult[i])));
-            }
+                toShow.push(queryBResult[i]);
+            } 
+        }
+        var table = document.getElementById("messages");
+        var head = " postcode    price   nobedrooms   type property    date listing   state agent    state agent postcode ";
+        $('#messages').append($('<tr class="messages">').text(head));
+        $('#messages').append($('<tr class="messages">').text(""));
+        for (var i = toShow.length - 1; i >= 0; i--) {
+            var prop = toShow[i].postcode.name +"   "+ toShow[i].price +"   "+ toShow[i].nobedrooms +"   "+ toShow[i].type.type +"   "+ toShow[i].datelisting +"   "+toShow[i].stateagent.name +"   "+ toShow[i].stateagent.postcode.name;
+            $('#messages').prepend($('<tr class="messages">').text(prop));
         }
     }
 
@@ -140,7 +157,7 @@
         queryBResult.push(data);
         if (isShowable(data)){
             toShow.push(data);
-            $('#messages').prepend($('<li class="messages">').text(JSON.stringtify(data)));
+            $('#messages').prepend($('<li class="messages">').text(JSON.stringify(data)));
         }    
     }
 

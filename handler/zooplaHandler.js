@@ -49,7 +49,7 @@ module.exports = function() {
 		if (properties !== undefined){
 	  		for (var i = properties.length - 1; i >= 0; i--) {
 	  			var lastDate =  formatDate((asd)[i]['last_published_date']);
-	  			if ((lastDate,_days,callback)){
+	  			if (inDaysRange(lastDate,_days,_callback)){
  					listProp.push( {type:(asd)[i]['property_type'].toLowerCase(),bedroomno:(asd)[i]['num_bedrooms'],firstprice: (asd)[i]['price'],firstdate : (asd)[i]['first_published_date'], lastdate : lastDate,postcode : eval("["+ json +"]")[0]['postcode'], agentname :(asd)[i]['agent_name'], "agentpostCode":"?", "webSiteID" : _webSiteID, 'webSitePropertyID' : (asd)[i]['listing_id']} );
 	  			}
 	  		}		
@@ -61,7 +61,7 @@ var inDaysRange = function(propertyDate, rangeDays,callback){
   	var propDate = Date.parse(propertyDate);
   	var today = Date.now();
 
-	return ((today-propDate)/_daysMilisec <= queryDays);
+	return ((today-propDate)/_daysMilisec <= rangeDays);
 }
 
 var formatDate = function(date){
