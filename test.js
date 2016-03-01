@@ -15,6 +15,4 @@ new Date();
 compareDates("2016-02-25","7",callback);
 
 
-Error: SQLITE_BUSY: database is locked
-
  

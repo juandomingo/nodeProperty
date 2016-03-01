@@ -21,6 +21,10 @@ var handleClient = function(socket){
 
   var queryA = function(data){
     controller.getResultsQueryA(data.postcode,data.radius, data.days, data.queryname , enviar);
+    setTimeout(function () {
+            enviar("");
+    }, 500);
+
   }
 
   var queryB = function(postcode){

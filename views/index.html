@@ -69,6 +69,7 @@
     var handleNews = function(data){
         $('#messages').prepend($('<li class="messages">').text(data));
         i = data;
+
     }
     socket.on('news', handleNews);
 
