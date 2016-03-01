@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS `propertytype` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `rightmoveid`
+-- Table structure for table `rightmoveid` NOT IN USE
 --
 
 CREATE TABLE IF NOT EXISTS `rightmoveid` (
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `stateagent` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `zooplaid`
+-- Table structure for table `zooplaid` NOT IN USE
 --
 
 CREATE TABLE IF NOT EXISTS `zooplaid` (
@@ -78,3 +78,43 @@ CREATE TABLE IF NOT EXISTS `zooplaid` (
   `zoopla_id` int NOT NULL,
   `property_id` int NOT NULL
 );
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `query` NOT IN USE
+--
+
+CREATE TABLE IF NOT EXISTS `query` (
+`id` INTEGER PRIMARY KEY   AUTOINCREMENT,
+  `name` text NOT NULL,
+  `postcode` text NOT NULL,
+  `days` int NOT NULL,
+  `radius` int NOT NULL
+);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `propInQuery` NOT IN USE
+--
+
+CREATE TABLE IF NOT EXISTS `propInQuery` (
+`id` INTEGER PRIMARY KEY   AUTOINCREMENT,
+  `queryid` int NOT NULL,
+  `propid` int NOT NULL
+);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `propInPage` NOT IN USE
+--
+
+CREATE TABLE IF NOT EXISTS `propInPage` (
+`id` INTEGER PRIMARY KEY   AUTOINCREMENT,
+  `pageid` int NOT NULL,
+  `propid` int NOT NULL
+);
+
+

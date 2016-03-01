@@ -6,7 +6,7 @@ module.exports = function() {
 	var Propertytype = require('./../model/Propertytype.js');
 	var EstateAgent = require('./../model/EstateAgent.js');
 
-readFromFile = function(filename,callback){
+var readFromFile = function(filename,callback){
 	fs.readFile(filename, "utf-8", function read(err, sql) {
     	if (err) {
       		onError(err);
@@ -16,13 +16,13 @@ readFromFile = function(filename,callback){
 	});
 }
 
-rawSQL = function(sql,callback){
+var rawSQL = function(sql,callback){
 	var db = new sqlite3.Database('./db/property.db');
 	db.get(sql,callback);
 	db.close();
 }
 
-createDB = function(){
+var createDB = function(){
 	var filename = './db/property.sql';
 	readFromFile(filename,function(sql){
 		sqles = sql.match(/(CREATE)[\w\s\`\(\,\)]+\;/g);
@@ -35,32 +35,14 @@ createDB = function(){
 
 }
 
-
-test = function(){
-
-	db.serialize(function() {
-  	db.run("CREATE TABLE lorem (info TEXT)");
-
-  	var stmt = db.prepare("INSERT INTO lorem VALUES (?)");
-  	for (var i = 0; i < 10; i++) {
-      stmt.run("Ipsum " + i);
-  	}
-  	stmt.finalize();
-
-  	db.each("SELECT rowid AS id, info FROM lorem", function(err, row) {
-      console.log(row.id + ": " + row.info);
-  	});
-	});
-
-	db.close();
-}
-
-getPostCodeFromID = function(id,callback){
+var getPostCodeFromID = function(id,callback){
 	var db = new sqlite3.Database('./db/property.db');
 	var sql = "select * from `postcode` where `id` = ?;"
 	var params = [id];
 	var stmt = db.prepare(sql);
+
 	stmt.get(params,function(err, row) {
+
 		if (row !== undefined){
 			result = new Postcode(row['id'],row['name']);
 		}
@@ -73,11 +55,12 @@ getPostCodeFromID = function(id,callback){
 	});
 }
 
-getPostCodeFromName = function(name,callback){
+var getPostCodeFromName = function(name,callback){
 	var db = new sqlite3.Database('./db/property.db');
 	var sql = "select * from `postcode` where `name` = ?;"
 	var params = [name];
 	var stmt = db.prepare(sql);
+	var result;
 	stmt.get(params,function(err, row) {
 		if (row !== undefined){
 			result = new Postcode(row['id'],row['name']);
@@ -91,7 +74,7 @@ getPostCodeFromName = function(name,callback){
 	});
 }
 
-insertOrGetPostCode = function(name,callback){
+var insertOrGetPostCode = function(name,callback){
 	getPostCodeFromName(name, function(result){
 		if (result !== null)
 			{callback(result);}
@@ -106,7 +89,7 @@ insertOrGetPostCode = function(name,callback){
 	});
 }
 
-getTypeCodeFromType = function(type,callback){
+var getTypeCodeFromType = function(type,callback){
 	var db = new sqlite3.Database('./db/property.db');
 	var sql = "select * from `propertytype` where `type` = ?;"
 	var params = [type];var stmt = db.prepare(sql);
@@ -123,7 +106,7 @@ getTypeCodeFromType = function(type,callback){
 	});
 }
 
-insertOrGetType = function(type,callback){
+var insertOrGetType = function(type,callback){
 	getTypeCodeFromType(type, function(result){
 		if (result !== null)
 			{callback(result);}
@@ -138,14 +121,16 @@ insertOrGetType = function(type,callback){
 }
 
 
-getEstateStudioFromName = function(name,callback){
+var getEstateStudioFromName = function(name,callback){
 	var db = new sqlite3.Database('./db/property.db');
 	var sql = "select * from `stateagent` where `name` = ?;"
-	var params = [name];var stmt = db.prepare(sql);
+	var params = [name];
+	var stmt = db.prepare(sql);
+
 	stmt.get(params,function(err, row) {
 		if (row !== undefined){
+			stmt.finalize();db.close();
 			getPostCodeFromID(row['postcode_id'],function(result){
-				stmt.finalize();db.close();
 				callback(new EstateAgent(row['id'],row['name'],result));
 			})
 		}
@@ -155,12 +140,14 @@ getEstateStudioFromName = function(name,callback){
 	});
 }
 
-insertOrGetEstateStudio = function(name,postcodeName,callback){
+var insertOrGetEstateStudio = function(name,postcodeName,callback){
 	getEstateStudioFromName(name, function(result){
 		if (result !== null)
 			{callback(result);}
 		else
 		{
+
+
 			var db = new sqlite3.Database('./db/property.db');
 			var sql = "INSERT INTO `stateagent` (`id`,`name`,'postcode_id') VALUES (?,?,?);"
 			insertOrGetPostCode(postcodeName,function(result){
@@ -171,40 +158,110 @@ insertOrGetEstateStudio = function(name,postcodeName,callback){
 	});
 }
 
+var asociateWithQuery = function(queryID,propID, callback){
 
-saveProperty = function(property,extra) {
-	
+	var db = new sqlite3.Database('./db/property.db');
+	var sql = "INSERT INTO `propInQuery` (`id`,`queryid`,`propid`) VALUES (?,?,?);"
+	var params = [null,queryID,propID];
+	var stmt = db.prepare(sql);
+	db.configure("busyTimeout", 2000);
+	stmt.run(params,function(){
+		stmt.finalize();
+		db.close();
+		callback();
+	});
 
+}
+
+var asociateWithPage = function(propID,pageID){
+								
+	var db = new sqlite3.Database('./db/property.db');
+	var sql = "INSERT INTO `propInPage` (`id`,`pageid`,`propid`) VALUES (?,?,?);"
+	var params = [null,pageID,propID];
+	var stmt = db.prepare(sql);
+	db.configure("busyTimeout", 2000);
+	stmt.run(params,function(){
+		stmt.finalize();
+		db.close();
+	});
+
+}
+
+
+
+var saveProperty = function(queryID,property,extra) {
 		insertOrGetPostCode(property.postcode, function(result){
 			var postcode = result;
 			insertOrGetType(property.type, function(result){
+				
 				var typeID = result;
-				console.log(extra);
 				insertOrGetEstateStudio(property.stateagent, extra.stateP, function(result){
-					var db = new sqlite3.Database('./db/property.db')
+					var webSitePropertyID = extra.webSitePropertyID;
+					var webSiteID = extra.webSiteID;
+					var db = new sqlite3.Database('./db/property.db');
+					db.configure("busyTimeout", 6000);
 					var stateAgent = result;
 					var sql = "INSERT INTO `property` (`id`,`type_id`, `number_beedrooms`, `postcode_id`,`state_agent_id`,`price`,`date_listing`) "+  
 					"VALUES (?,?, ?, ?, ?, ?,?);";
 					var params = [null,typeID.id, property.nobedrooms, postcode.id, stateAgent.id, property.price, property.datelisting];
-
 					var stmt = db.prepare(sql);
-					stmt.run(params);
-					stmt.finalize();
-					db.close();
+
+					stmt.run(params,function(err){
+
+						propID = this.lastID;
+						stmt.finalize();
+						db.close();
+   						asociateWithQuery(queryID,propID,function(){
+							asociateWithPage(webSitePropertyID, webSiteID);
+						});
+					});
 				});
 			});
 		});
 };
 
 
+getPropertiesIn = function(postcode, callback){
+	var db = new sqlite3.Database('./db/property.db')
+	var stateAgent = result;
+	var sql = "SELECT * from `property` where `postcode_id` = ?;"
+	var stmt = db.prepare(sql);
+	getPostCodeFromName(postcode,function(postcode){
+
+		var params = [postcode.id];
+		stmt.each(params,function(err, row){
+			callback(row)
+			stmt.finalize();
+			db.close();
+		});
+		
+
+	})
+}
+
+var saveQuery = function(postcode, radius, days, queryName,callback){
+	var id;
+	var db = new sqlite3.Database('./db/property.db');
+	var sql = "INSERT INTO `query` (`id`,`name`,`postcode`,`days`,`radius`) VALUES (?,?,?,?,?);"
+	var params = [null,queryName,postcode,days,radius];
+	var stmt = db.prepare(sql);
+	stmt.run(params,function(){
+		id = this.lastID;
+		stmt.finalize();
+		db.close();
+		callback(id);
+	});
+}
+
+
 
 
   var db = {
-  	  "testDB" : function(){test();},
       "getResults" : function(postCode,callback){_callback = callback; _postcode=postCode; getPostCode(postCode)},
   	  "createDB" : function(){createDB()},
   	  "rawSQL" : function(sql,callback){rawSQL(sql,callback);},
-  	  "saveProperty" : function(property,extra){saveProperty(property,extra);}
+  	  "saveProperty" : function(queryID,property,extra,callback){_callback = callback;saveProperty(queryID,property,extra);},
+  	  "saveQuery" : function(postcode, radius, days, queryName,callback){saveQuery(postcode, radius, days, queryName, callback);}
   }
 
   return db;

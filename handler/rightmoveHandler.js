@@ -1,119 +1,110 @@
 module.exports = function() {
-  var http = require('http');
-  var _callback;
-  var _postcode;
-  var fs = require('fs');
-  var options = {
 
-    host: "www.rightmove.co.uk", 
-    port: 80,
-    path: '',
-    method: 'GET'
-  };
+    var http = require('http');
+    var fs = require('fs');
+    var _callback;
+    var _postcode;
+    var _days;
+    var _radius;
+    var _webSiteID = 2;
+    var _options = {
+        host: "www.rightmove.co.uk", 
+        port: 80,
+        path: '',
+        method: 'GET'
+    };
 
- getPropertyValues = function(link){
-    options.path = link;
-    var result = "";
-    http.request(options, function(res) {
+    getPropertyValues = function(link){
+        _options.path = link;
+        var result = "";
+        http.request(_options, function(res) {
 
-
-        res.setEncoding('utf8');
+            res.setEncoding('utf8');
         
-        res.on('data', function (chunk) {
-         result += chunk; 
-        });
+            res.on('data', function (chunk) {
+                result += chunk; 
+            });
 
-        res.on('end',function(){
-          (parseProperty(result));
-        });
-    }).end( );
+            res.on('end',function(){
+                (parseProperty(result));
+            });
+        }).end( );
+    }
 
-
- }
-
-  function getQuery(newPostCode){
-    var link = "/property-for-sale/find.html?searchType=SALE&locationIdentifier="+ newPostCode +"&insId=2&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false";
-    options.path = link;
-  	var result = "";
-  	http.request(options, function(res) {
-
-
+    function getQuery(newPostCode){
+        _options.path = "/property-for-sale/find.html?searchType=SALE&locationIdentifier="+ newPostCode
+         +"&insId=2&radius="+ _radius 
+         + ".0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded="+ _days
+         +"&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&"
+         +"secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&"
+         +"newHome=&auction=false";
+  	     var result = "";
+  	     http.request(_options, function(res) {
     		res.setEncoding('utf8');
     		
     		res.on('data', function (chunk) {
-  			 result += chunk; 
-  	  	});
+  			   result += chunk; 
+            });
 
-        res.on('end',function(){
-          var links = parsePropertiesLink(result, newPostCode);
-            for (var i = links.length - 1; i >= 0; i--) {
-              getPropertyValues(links[i]);
-            }
-        });
-  	}).end( );
-  }
+            res.on('end',function(){
+                var links = parsePropertiesLink(result, newPostCode);
+                for (var i = links.length - 1; i >= 0; i--) {
+                    getPropertyValues(links[i]);
+                }
+            });
+        }).end( );
+    }
 
-  getPostCode = function(postcode){
-    var linkForPostCode = "/property-for-sale/search.html?searchLocation=" + postcode + "&locationIdentifier=&useLocationIdentifier=false&buy=For+sale";
-    options.path = linkForPostCode;
-    var result = "";
-    http.request(options, function(res) {
-        res.setEncoding('utf8');
-        
-        res.on('data', function (chunk) {
-         result += chunk; 
-        });
+    getPostCode = function(){
+        _options.path = "/property-for-sale/search.html?searchLocation=" + _postcode +
+         "&locationIdentifier=&useLocationIdentifier=false&buy=For+sale";
+        var result = "";
+        http.request(_options, function(res) {
+            res.setEncoding('utf8');
 
-        res.on('end',function(){
-            getQuery(parsePostCode(result));
-        });
-    }).end();
-  }
+            res.on('data', function (chunk) {
+                result += chunk; 
+            });
+
+            res.on('end',function(){
+                getQuery(parsePostCode(result));
+            });
+        }).end();
+    }
 
     parseProperty = function(html){
-          result =[]
-          type = html.match(/(\"BD\"\:\[\")\w*(\"\])/)[0].split("[")[1];
-          type = type.replace(/\"/g,"");
-          type = type.replace(/\]/,"");
+
+        result =[];
+        fs.writeFile("./html.html", html  , function(err) {
+                if(err) {
+                    return console.log(err);
+                }
+        });
+        type = html.match(/(\"BD\"\:\[\")\w*(\"\])/)[0].split("[")[1];
+        type = type.replace(/\"/g,"");
+        type = type.replace(/\]/,"");
 
 
-          nobed = "0";
-          postcode = _postcode.replace("+", " ");
+        nobed = "0";
+        postcode = _postcode.replace("+", " ");
 
-          agent = html.match(/(ontactagent-footer)[\s\S]{1,5000}(\<\/address)/)[0];
-          agentN = agent.match(/(\>).+(\<\/s)/)[0];
-          agentN = agentN.match(/([\w\,\s]+)/g)[1];
+        agent = html.match(/(ontactagent-footer)[\s\S]{1,5000}(\<\/address)/)[0];
+        agentN = agent.match(/(\>).+(\<\/s)/)[0];
+        agentN = agentN.match(/([\w\,\s]+)/g)[1];
 
-          agentP = agent.match(/\w{3}\s\w{3}/g);
-          agentP = agentP[agentP.length -1];
+        agentP = agent.match(/\w{3}\s\w{3}/g);
+        agentP = agentP[agentP.length -1];
 
-          price = html.match(/(\"listing\_totalvalue\"\:)\d+/)[0];
-          price = price.match(/\d+/)[0];
+        price = html.match(/(\"listing\_totalvalue\"\:)\d+/)[0];
+        price = price.match(/\d+/)[0];
 
-          date = html.match(/(firstListedDateValue\"\>)[\w\s]+/)[0];
-          date = date.match(/\d{1,2}\s[\w]+\s\d{4}/)[0];
-          date = dateToYYYYMMDD(date);
+        date = html.match(/(firstListedDateValue\"\>)[\w\s]+/)[0];
+        date = date.match(/\d{1,2}\s[\w]+\s\d{4}/)[0];
+        date = dateToYYYYMMDD(date);
 
-          _callback ({type:type,bedroomno:nobed,firstprice: price ,firstdate : date, lastdate : date,postcode : postcode, agentname :agentN, agentpostCode :agentP });
-      
+        webSitePropertyID;
 
-  /*        
-Type of property (Detached, terraced, flat/apartment etc)  "BD":["studio"]
-No. Bedrooms 0
-Postcode (this is accessible via source code) el dado
-Estate Agent (Name and postcode)  <strong>Chase Evans, Canary Wharf</strong></a></p>
-            <address class="pad-0">Horizon Building,
-15 Hertsmere Road,
-London,
-E14 4AW
-
-Price  precio "listing_totalvalue":295000.0 
-
-Date of listing  <div id="firstListedDateValue">29 January 2016</div>
-*/
-
-
-
+        _callback ({type:type,bedroomno:nobed,firstprice: price ,firstdate : date, lastdate : date,postcode : postcode, agentname :agentN, agentpostCode :agentP, "webSiteID" : _webSiteID, 'webSitePropertyID' : webSitePropertyID });
     }
 
 
@@ -125,30 +116,28 @@ Date of listing  <div id="firstListedDateValue">29 January 2016</div>
         links = [];
 
         crappylinks = (html.match(/\/new-homes-for-sale\/property-\d+.html/g));
-        if (crappylinks === null)
-          {
+        if (crappylinks === null){
             fs.appendFile("./error.html", html  , function(err) {
-              if(err) {
-                return console.log(err);
-              }
+                if(err) {
+                    return console.log(err);
+                }
             });
             return [];
-          }
+        }
         for (var i = 0; i < crappylinks.length; i++) {
             pushIfNew(crappylinks[i],links)
         }
         return links;
     }
 
-    function pushIfNew(obj,array) {
-      for (var i = 0; i < array.length; i++) {
-        if (array[i] === obj) { // modify whatever property you need
-          return;
+    var pushIfNew = function(obj,array) {
+        for (var i = 0; i < array.length; i++) {
+            if (array[i] === obj) { // modify whatever property you need
+                return;
+            }
         }
-      }
-      array.push(obj);
+        array.push(obj);
     }
-
 
     var dateToYYYYMMDD = function (date){
         var day = date.match(/\d{1,2}/)[0];
@@ -170,15 +159,15 @@ Date of listing  <div id="firstListedDateValue">29 January 2016</div>
             'november' : '11',
             'december' : '12'
         }
-    return ""+ year + "-" + months[month] +"-" + day + " 00:24:52";
-
-
+        return ""+ year + "-" + months[month] +"-" + day;
     }   
 
-  var rightmove = {
-      "getResults" : function(postCode,callback){_callback = callback; _postcode=postCode; getPostCode(postCode)}
-  }
 
-  return rightmove;
+
+    var rightmove = {
+        "getResults" : function(postcode,radius,days,callback){_callback = callback; _postcode=postcode; _radius= radius; _days = days; getPostCode()}
+    }
+
+    return rightmove;
 }();
 

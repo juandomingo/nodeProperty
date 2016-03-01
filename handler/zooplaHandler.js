@@ -1,55 +1,78 @@
 module.exports = function() {
-  var http = require('http');
-  var api_key = "j6c2abyzvka7jnspwbzs6kpe";
-  var options = {
-    host: "api.zoopla.co.uk", 
-    port: 80,
-    path: '/result?key=5memkqdpsgr4om0t&q=lebovic&l-availability=y%2Ff&encoding=json&zone=picture&s=0',
-    method: 'GET'
-  };
+	var http = require('http');
+	var _api_key = "j6c2abyzvka7jnspwbzs6kpe";
+	var _callback;
+	var _postcode;
+	var _days;
+	var _radius;
+	var _webSiteID = 1; 
 
-  function getQuery(postcode,callback){
-  	//eg : E15+1DD
-  	link = "/api/v1/property_listings.json?postcode=" + postcode + "&api_key="+ api_key;
-  	options.path = link;
-  	result = "";
-  	http.request(options, function(res) {
+  	var _daysMilisec = 1000 * 60 * 60 * 24;
 
-    		console.log('STATUS: ' + res.statusCode);
-    		res.setEncoding('utf8');
-    		
-    		res.on('data', function (chunk) {
-  			 result += chunk; 
-  	  	});
+	var options = {
+		host: "api.zoopla.co.uk", 
+		port: 80,
+		path: '',
+		method: 'GET'
+	};
 
-        res.on('end',function(){
-            var proplist = getProperty(result)
-            for (var i = proplist.length - 1; i >= 0; i--) {
-              callback(proplist[i]);
-            }
-            //callback();
-        });
-  	}).end( );
-  }
+	var getQuery = function(callback){
+		//eg : E15+1DD
+		link = "/api/v1/property_listings.json?postcode=" + _postcode + "&api_key="+ _api_key +"&radius=" +_radius ;
+		options.path = link;
+		result = "";
+		http.request(options, function(res) {
+
+			console.log('STATUS: ' + res.statusCode);
+			res.setEncoding('utf8');
+			
+			res.on('data', function (chunk) {
+				result += chunk; 
+			});
+
+			res.on('end',function(){
+				var proplist = getProperty(result)
+				for (var i = proplist.length - 1; i >= 0; i--) {
+			  		callback(proplist[i]);
+				}
+
+			});
+		}).end( );
+  	}
 
 
-  getProperty = function(json){
+  	var getProperty = function(json){
 
-    properties = eval("["+ json +"]")[0]['listing'];
-    asd = eval("["+ json +"]")[0]['listing'];
-    listProp = [];
-    for (var i = properties.length - 1; i >= 0; i--) {
-      listProp.push( {type:(asd)[i]['property_type'].toLowerCase(),bedroomno:(asd)[i]['num_bedrooms'],firstprice: (asd)[i]['price'],firstdate : (asd)[i]['first_published_date'], lastdate : (asd)[i]['last_published_date'],postcode : eval("["+ json +"]")[0]['postcode'], agentname :(asd)[i]['agent_name'], "agentpostCode":"?"} );
-    }
+		properties = eval("["+ json +"]")[0]['listing'];
+		asd = eval("["+ json +"]")[0]['listing'];
+		listProp = [];
+		if (properties !== undefined){
+	  		for (var i = properties.length - 1; i >= 0; i--) {
+	  			var lastDate =  formatDate((asd)[i]['last_published_date']);
+	  			if ((lastDate,_days,callback)){
+ 					listProp.push( {type:(asd)[i]['property_type'].toLowerCase(),bedroomno:(asd)[i]['num_bedrooms'],firstprice: (asd)[i]['price'],firstdate : (asd)[i]['first_published_date'], lastdate : lastDate,postcode : eval("["+ json +"]")[0]['postcode'], agentname :(asd)[i]['agent_name'], "agentpostCode":"?", "webSiteID" : _webSiteID, 'webSitePropertyID' : (asd)[i]['listing_id']} );
+	  			}
+	  		}		
+		}
+		return listProp;
+  	}
 
-    return listProp;
+var inDaysRange = function(propertyDate, rangeDays,callback){
+  	var propDate = Date.parse(propertyDate);
+  	var today = Date.now();
 
-  }
+	return ((today-propDate)/_daysMilisec <= queryDays);
+}
 
-  var zoopla = {
-      "getResults" : function(postCode,callback){getQuery(postCode,callback)}
-  }
+var formatDate = function(date){
+	return date.substring(0,10);
 
-  return zoopla;
+}
+
+  	var zoopla = {
+	  	"getResults" : function(postcode,radius,days,callback){_callback = callback; _postcode=postcode; _radius= radius; _days = days;getQuery(callback)}
+  	}
+
+  	return zoopla;
 }();
 
