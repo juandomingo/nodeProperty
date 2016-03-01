@@ -5,14 +5,15 @@ module.exports = function() {
 	var Postcode = require('./../model/Postcode.js');
 	var Propertytype = require('./../model/Propertytype.js');
 	var EstateAgent = require('./../model/EstateAgent.js');
+	var Property = require('./../model/Property.js');
 
 var readFromFile = function(filename,callback){
 	fs.readFile(filename, "utf-8", function read(err, sql) {
-    	if (err) {
-      		onError(err);
-      		return;
-	    }
-	    callback(sql);
+		if (err) {
+			onError(err);
+			return;
+		}
+		callback(sql);
 	});
 }
 
@@ -156,13 +157,14 @@ var insertOrGetEstateStudio = function(name,postcodeName,callback){
 	});
 }
 
- asociateWithQuery = function(queryID,propID, callback){
-
+var  asociateWithQuery = function(queryID,propID, callback){
 	var db = new sqlite3.Database('./db/property.db',sqlite3.OPEN_READWRITE);
 	var sql = "INSERT INTO `propInQuery` (`id`,`queryid`,`propid`) VALUES (?,?,?);"
-	var params = [null,queryID,propID];
 	var stmt = db.prepare(sql);
-	stmt.run(params,function(){
+	//var params = [null,queryID,propID];
+	stmt.get([null,queryID,propID],function(err){
+		if (err !== null)
+			{console.log(err);}
 		stmt.finalize();
 		db.close();
 		callback();
@@ -170,61 +172,56 @@ var insertOrGetEstateStudio = function(name,postcodeName,callback){
 
 }
 
- asociateWithPage = function(propID,pageID,callback){
-								
+var  asociateWithPage = function(propID,pageID,callback){						
 	var db = new sqlite3.Database('./db/property.db',sqlite3.OPEN_READWRITE);
 	var sql = "INSERT INTO `propInPage` (`id`,`pageid`,`propid`) VALUES (?,?,?);"
-	var params = [null,pageID,propID];
 	var stmt = db.prepare(sql);
+	//var params = [null,pageID,propID];
 
-	stmt.run(params,function(){
+	stmt.get([null,pageID,propID],function(err){
+		if (err !== null)
+			{console.log(err);}
 		stmt.finalize();
 		db.close();
+		
 		callback();
 	});
 
 
 }
 
- saveFullProp = function(params,callback){
+ saveFullProp = function(prop,callback){
 	var db = new sqlite3.Database('./db/property.db',sqlite3.OPEN_READWRITE);
 	var sql = "INSERT INTO `property` (`id`,`type_id`, `number_beedrooms`, `postcode_id`,`state_agent_id`,`price`,`date_listing`) "+  
 	"VALUES (?,?, ?, ?, ?, ?,?);";
 	var stmt = db.prepare(sql);
-
+	var params = [null,prop.type.id, prop.nobedrooms, prop.postcode.id, prop.stateagent.id, prop.price, prop.datelisting];
 	stmt.run(params,function(){
-		var lastID = this.lastID;
+		prop.id = this.lastID;
 		stmt.finalize();
 		db.close();
-		callback(lastID);
+		callback(prop);
 	});
-
-
 }
 
-var saveProperty = function(queryID,property,extra) {
-	//asociateWithPage(extra.webSitePropertyID, extra.webSiteID,function(){
+var getPropertyFromQuery = function(queryID,property,extra,callback) {
+
 		insertOrGetPostCode(property.postcode, function(result){
 			var postcode = result;
 			insertOrGetType(property.type, function(result){
-				var typeID = result;
+				var type = result;
 				insertOrGetEstateStudio(property.stateagent, extra.stateP, function(result){
 					var stateAgent = result;
-						
-					var params = [null,typeID.id, property.nobedrooms, postcode.id, stateAgent.id, property.price, property.datelisting];
-					saveFullProp(params,function(lastID){
-   						asociateWithQuery(queryID,lastID,function(){
-						});
-					});
+					callback(new Property(null,type,property.nobedrooms,postcode,stateAgent,property.price, property.datelisting
+						));
 				});
 			});
 		});
-	//});
-};
+	};
 
 
-getPropertiesIn = function(postcode, callback){
 
+var getPropertiesIn = function(postcode, callback){
 	getPostCodeFromName(postcode,function(postcode){
 		var db = new sqlite3.Database('./db/property.db',sqlite3.OPEN_READONLY)
 		var stateAgent = result;
@@ -236,8 +233,6 @@ getPropertiesIn = function(postcode, callback){
 			stmt.finalize();
 			db.close();
 		});
-		
-
 	})
 }
 
@@ -255,17 +250,81 @@ var saveQuery = function(postcode, radius, days, queryName,callback){
 	});
 }
 
+var getQueries = function(callback){
 
+		var db = new sqlite3.Database('./db/property.db',sqlite3.OPEN_READONLY)
+		var sql = "SELECT * from `query`;"
+		var stmt = db.prepare(sql);
+		stmt.each([],function(err, row){
+			callback(row)
+		});
+		stmt.finalize();
+		db.close();
+		
+}
+
+var getTypes = function(callback){
+		var db = new sqlite3.Database('./db/property.db',sqlite3.OPEN_READONLY)
+		var sql = "SELECT * from `propertytype`;"
+		var stmt = db.prepare(sql);
+		stmt.each([],function(err, row){
+			callback(row)
+		});
+		stmt.finalize();
+		db.close();
+}
+
+var getPropertyInQuery = function(queryID,callback){
+	var db = new sqlite3.Database('./db/property.db',sqlite3.OPEN_READONLY)
+	var sql = "SELECT P.id as id,"+
+"P.id as id, " +	
+"P.type_id as typeid, " +
+"P.number_beedrooms as numberbeedrooms, " +
+"P.postcode_id as postcodeid, " +
+"P.state_agent_id as stateagentID, " +
+"P.price as price, " +
+"P.date_listing as datelisting,  " +
+"PC.name as postcodename,  " +
+"PT.type as typetype,  " +
+"SA.name as stateagentname,  " +
+"PCSA.id as stateagentpostcodeid, " +
+"PCSA.name as stateagentpostcode " +
+"from `property` as P " +
+"INNER JOIN `propInQuery` as PIQ ON P.id = PIQ.`propid`  " +
+"INNER JOIN `propertytype` as PT ON P.type_id = PT.`id` " +
+"INNER JOIN `stateagent` as SA ON P.state_agent_id = SA.`id` " +
+"INNER JOIN `postcode` as PC ON P.postcode_id = PC.`id` " +
+"INNER JOIN `postcode` as PCSA ON SA.postcode_id = PCSA.`id` " +
+"WHERE PIQ.`queryid` = ? ;"
+	var stmt = db.prepare(sql);
+	stmt.each([queryID],function(err, row){
+
+
+		callback(new Property(row.id,new Propertytype(row.typeid,row.typetype),row.numberbeedrooms,
+			new Postcode(row.postcodeid, row.postcodename),
+			new EstateAgent(row.stateagentID,row.stateagentname,
+				new Postcode(row.stateagentpostcodeid, row.stateagentpostcode)),
+			row.price,
+			row.datelisting));
+	});
+	stmt.finalize();
+	db.close();
+}
 
 
   var db = {
-      "getResults" : function(postCode,callback){_callback = callback; _postcode=postCode; getPostCode(postCode)},
-  	  "createDB" : function(){createDB()},
-  	  "rawSQL" : function(sql,callback){rawSQL(sql,callback);},
-  	  "saveProperty" : function(queryID,property,extra,callback){_callback = callback;saveProperty(queryID,property,extra);},
-  	  "saveQuery" : function(postcode, radius, days, queryName,callback){saveQuery(postcode, radius, days, queryName, callback);}
+	  	"getResults" : function(postCode,callback){_callback = callback; _postcode=postCode; getPostCode(postCode)},
+	  	"createDB" : function(){createDB()},
+	  	"rawSQL" : function(sql,callback){rawSQL(sql,callback);},
+	  	"getPropertyFromQuery" : function(queryID,property,extra,callback){getPropertyFromQuery(queryID,property,extra,callback);},
+	  	"saveQuery" : function(postcode, radius, days, queryName,callback){saveQuery(postcode, radius, days, queryName, callback);},
+		"saveFullProp" : function(property,callback){saveFullProp(property,callback);},
+		"asociateWithPage" : function(propID,pageID,callback){asociateWithPage(propID,pageID,callback);},
+		"asociateWithQuery" : function(queryID,propID,callback){asociateWithQuery(queryID,propID, callback);},
+  		"getQueries" : function(callback){getQueries(callback);},
+  		"getTypes" : function(callback){getTypes(callback);},
+  		"getPropertyInQuery" : function(queryID,callback){getPropertyInQuery(queryID,callback);}
   }
 
   return db;
 }();
-

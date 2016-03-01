@@ -14,28 +14,33 @@ app.use(express.static('public'));
   SOCKET IO
 */
 
-
-
 var handleClient = function(socket){
-  var enviar = function(data){socket.emit('news', {data});console.log(data);}
+
+  var enviar = function(data,socketName){socket.emit(socketName, data);}
 
   var queryA = function(data){
     controller.getResultsQueryA(data.postcode,data.radius, data.days, data.queryname , enviar);
-    setTimeout(function () {
-            enviar("");
-    }, 500);
+  }
+
+  var queryB = function(data){
+    controller.getResultsQueryB(data.queryID,function(datas){enviar(datas,"queryBResult");});
+    //console.log('queryB recibida' + data.queryID + data.typeID + data.valueMin + data.valueMax);
+    //enviar({'id':'10','type':"detached",'postcode':"NW3 3AY",'value':"15000",'agent':"roberto hermanos",'agentpostcode':"NW3 2AY"},"queryBResult");
 
   }
 
-  var queryB = function(postcode){
-    controller.getResultsQueryB(postcode,enviar);
-    enviar("recibi una query B");
-    console.log('queryB recibida')
+  var getQueries = function(){
+    controller.getQueries(function(data){enviar(data,"getQueries");});
+  }
+
+  var getTypes = function(){
+    controller.getTypes(function(data){enviar(data,"getTypes");});
   }
 
   socket.on('queryA', queryA);
   socket.on('queryB', queryB);
-
+  socket.on('getQueriesC', getQueries);
+  socket.on('getTypesC', getTypes);
 }
 io.sockets.on('connection', handleClient);
 

@@ -1,0 +1,59 @@
+SELECT P.* from `property` as P
+INNER JOIN `propInQuery` as PIQ ON P.id = PIQ.`propid` 
+
+
+WHERE PIQ.`queryid` = 122 ;
+
+SELECT P.*, PT.*, SA.*, PC.* from `property` as P
+INNER JOIN `propInQuery` as PIQ ON P.id = PIQ.`propid` 
+INNER JOIN `propertytype` as PT ON P.type_id = PT.`id`
+INNER JOIN `stateagent` as SA ON P.state_agent_id = SA.`id`
+INNER JOIN `postcode` as PC ON P.postcode_id = PC.`id`
+
+WHERE PIQ.`queryid` = 122 ;
+
+
+SELECT
+P.id as property.id, P.type_id as property.type.type_id, P.number_beedrooms as property.number_beedrooms, P.postcode_id	as property.postcode.id 
+P.state_agent_id as property.stateagent.ID, P.price as property.price, P.date_listing as property.datelisting, PT.type as property.type.type, 
+SA.name as P.stateagent.name, PC.* 
+from `property` as P
+INNER JOIN `propInQuery` as PIQ ON P.id = PIQ.`propid` 
+INNER JOIN `propertytype` as PT ON P.type_id = PT.`id`
+INNER JOIN `stateagent` as SA ON P.state_agent_id = SA.`id`
+INNER JOIN `postcode` as PC ON P.postcode_id = PC.`id`
+
+WHERE PIQ.`queryid` = 122 ;
+
+
+SELECT 
+P.id as id, P.type_id as typeid, P.number_beedrooms as numberbeedrooms, P.postcode_id	as postcodeid 
+P.state_agent_id as stateagentID, P.price as price, P.date_listing as datelisting, PT.type as typetype, 
+SA.name as stateagentname, PC.* 
+from `property` as P
+INNER JOIN `propInQuery` as PIQ ON P.id = PIQ.`propid` 
+INNER JOIN `propertytype` as PT ON P.type_id = PT.`id`
+INNER JOIN `stateagent` as SA ON P.state_agent_id = SA.`id`
+INNER JOIN `postcode` as PC ON P.postcode_id = PC.`id`
+
+WHERE PIQ.`queryid` = 122 ;
+
+
+SELECT P.id as id,
+P.type_id as typeid,
+P.number_beedrooms as numberbeedrooms,
+P.postcode_id as postcodeid,
+P.state_agent_id as stateagentID,
+P.price as price,
+P.date_listing as datelisting, 
+PT.type as typetype, 
+SA.name as stateagentname, 
+PCSA.name as stateagentpostcode
+from `property` as P
+INNER JOIN `propInQuery` as PIQ ON P.id = PIQ.`propid` 
+INNER JOIN `propertytype` as PT ON P.type_id = PT.`id`
+INNER JOIN `stateagent` as SA ON P.state_agent_id = SA.`id`
+INNER JOIN `postcode` as PC ON P.postcode_id = PC.`id`
+INNER JOIN `postcode` as PCSA ON SA.postcode_id = PCSA.`id`
+
+WHERE PIQ.`queryid` = 122 ;

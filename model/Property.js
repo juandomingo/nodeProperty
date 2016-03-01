@@ -1,5 +1,6 @@
 // Constructor
-function Property(type,nobedrooms,postcode,stateagent,price,datelisting) {
+function Property(id,type,nobedrooms,postcode,stateagent,price,datelisting,id) {
+  this.id = id;
   this.type = type;
   this.nobedrooms = nobedrooms;
   this.postcode = postcode;

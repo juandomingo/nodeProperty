@@ -24,14 +24,32 @@
 <h2 id="queryType">no query selected</h2>
 <nav>
 <ul class="dropdown">
-        <form action="">
-            <input id="postcode" autocomplete="off" />
-            <input id="radius" autocomplete="off" />
-            <input id="days" autocomplete="off" />
-            <input id="queryname" autocomplete="off" />
+<form action="">
+            postcode <input id="postcode" autocomplete="off" />
+            radius <input id="radius" autocomplete="off" />
+            days <input id="days" autocomplete="off" />
+            query name <input id="queryname" autocomplete="off" />
+            <input name="typeID" id="typeID" type="hidden">
+            <input name="queryID" id="queryID" type="hidden">
+            value min :<input id="valueMin" autocomplete="off" />
+            value max :<input id="valueMax" autocomplete="off" />
+            rooms :<input id="selectRooms" autocomplete="off" />
             <button>Send</button>
+<div class="dropList">
+
+<select id="selectQuery" class="select" onchange=
+    "$('#queryID').val(this.options[this.selectedIndex].value);">
+   <option></option>
+</select>
+
+<select id="selectType" class="select" onchange=
+    "$('#typeID').val(this.options[this.selectedIndex].value);">
+   <option></option>
+</select>
+
+</div>
+
         </form>
-        <ul id="messages"></ul>
         	<li class="drop"><a href="#">QUERY</a>
         		<ul class="sub_menu">
 							<li><a id="QA" href="#">A</a></li>
@@ -58,32 +76,98 @@
         	</li>
         </ul>
 </nav>
+        <ul id="messages"></ul>
+
     <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
 
         <script src="js/index.js"></script>
 <script>
-    var i;
     var socket = io.connect('http://localhost:3000');
     var selected = "";
+    var toShow = [];
+    var queryBResult = [];
 
-    var handleNews = function(data){
-        $('#messages').prepend($('<li class="messages">').text(data));
-        i = data;
-
-    }
-    socket.on('news', handleNews);
-
-    
     $('form').submit(function(){
-        socket.emit(selected, {postcode : $('#postcode').val(),
-                                radius : $('#radius').val(),
-                                days : $('#days').val(),
-                                queryname : $('#queryname').val()});
+        if(selected === "queryB"){
+            socket.emit(selected, {queryID : $('#queryID').val()});
+        }
+        else{
+            socket.emit(selected, {postcode : $('#postcode').val(), radius : $('#radius').val(),
+                                days : $('#days').val(), queryname : $('#queryname').val()});
+        }
         return false;
     });
 
-    $('#QA').click(function(){selected = "queryA";$('#queryType').text(selected)})
-    $('#QB').click(function(){selected = "queryB";$('#queryType').text(selected)})
+    var resetAndShow = function(){
+        toShow = [];
+        $(".messages").remove();
+        for (var i = queryBResult.length - 1; i >= 0; i--) {
+            if (isShowable(queryBResult[i])){
+                toShow.add(queryBResult[i]);
+                $('#messages').prepend($('<li class="messages">').text(JSON.stringtify(queryBResult[i])));
+            }
+        }
+    }
+
+    $( "#selectRooms" ).change(function() {
+        resetAndShow();
+    });
+
+    $( "#selectType" ).change(function() {
+        resetAndShow();
+    });
+
+    $( "#valueMin" ).change(function() {
+        resetAndShow();
+    });
+
+    $( "#valueMax" ).change(function() {
+        resetAndShow();
+    });
+
+
+
+    var isShowable = function(property){
+        if (property.price >  $('#valueMin').val() && property.price < $('#valueMax').val())
+            if (property.type.id == $('#typeID').val())
+                if (property.nobedrooms == $('#selectRooms').val())
+                return true;
+        return false;
+    }
+
+    var handleQueryBResult = function(data){
+        //console.log(data);
+        queryBResult.push(data);
+        if (isShowable(data)){
+            toShow.push(data);
+            $('#messages').prepend($('<li class="messages">').text(JSON.stringtify(data)));
+        }    
+    }
+
+
+
+    socket.on('queryBResult', handleQueryBResult);
+
+    var handleTypes = function(data){
+        $('#selectType').append("<option class='removible' value="+data.id+">Property type "+ data.type+" </option>");
+    }
+    socket.on('getTypes', handleTypes);
+
+    var handleQueries = function(data){
+        $('#selectQuery').append("<option class='removible' value="+data.id+">Query Name "+ data.name+ " (postcode: "+ data.postcode+")radius: "+ data.radius +")(days: "+data.days +") </option>");
+    }
+    socket.on('getQueries', handleQueries);
+
+    $('#QA').click(function(){selected = "queryA";$('#queryType').text(selected)});
+    $('#QB').click(function(){
+        queryBResult = [];
+        toShow = [];
+        $(".removible").remove();
+        $('#queryType').text(selected);
+        selected = "queryB";
+        socket.emit("getTypesC","getTypes");
+        socket.emit("getQueriesC","getQueries");
+    });
 
 
 </script>
