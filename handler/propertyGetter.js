@@ -6,9 +6,21 @@ module.exports = function() {
       
       "getPropInPostCode" : function(postcode, radius, days,callback){
       	//add more handlears whenever you need.
-      	zooplaHandler.getResults(postcode.replace(" ","+"),radius, days, callback);
-              
-    		rightmoveHandler.getResults(postcode.replace(" ","+"),radius, days, callback);
+        var properties = [];
+        var handlers = 1;
+        var doneV = 0;
+        var collect = function(data){
+            properties.push(data);
+        }
+        var done = function(){
+          doneV++;
+          if (doneV === handlers)
+          {
+            callback(properties);
+          }
+        }
+      	zooplaHandler.getResults(postcode.replace(" ","+"),radius, days, collect, done);
+    		rightmoveHandler.getResults(postcode.replace(" ","+"),radius, days, collect, done);
       	}
   }
 

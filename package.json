@@ -7,7 +7,8 @@
     "body-parser" : "latest",
     "mongoose":"latest",
     "socket.io":"latest",
-    "sqlite3":"latest"
+    "sqlite3":"latest",
+    "jetty":"latest"
   }
 }
 

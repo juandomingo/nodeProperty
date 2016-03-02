@@ -7,6 +7,8 @@ module.exports = function() {
     var _days;
     var _radius;
     var _webSiteID = 2;
+    var _done;
+    var _loop;
     var _options = {
         host: "www.rightmove.co.uk", 
         port: 80,
@@ -30,14 +32,10 @@ module.exports = function() {
             });
         }).end( );
     }
-
     function getQuery(newPostCode){
-        _options.path = "/property-for-sale/find.html?searchType=SALE&locationIdentifier="+ newPostCode
-         +"&insId=2&radius="+ _radius 
-         + ".0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded="+ _days
-         +"&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&"
-         +"secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&"
-         +"newHome=&auction=false";
+
+        _options.path = "/property-for-sale/find.html?locationIdentifier="+ newPostCode+
+        "&insId=3&maxDaysSinceAdded="+_days+"&radius="+ _radius+".0&index="+ (_loop*10);
   	     var result = "";
   	     http.request(_options, function(res) {
     		res.setEncoding('utf8');
@@ -108,11 +106,11 @@ module.exports = function() {
     }
 
 
-    parsePostCode = function(html){
+    var parsePostCode = function(html){
         return (/(POSTCODE)\^\d*/).exec(html)[0];
     }
 
-    parsePropertiesLink = function(html){
+    var parsePropertiesLink = function(html){
         links = [];
 
         crappylinks = (html.match(/\/new-homes-for-sale\/property-\d+.html/g));
@@ -162,10 +160,8 @@ module.exports = function() {
         return ""+ year + "-" + months[month] +"-" + day;
     }   
 
-
-
     var rightmove = {
-        "getResults" : function(postcode,radius,days,callback){_callback = callback; _postcode=postcode; _radius= radius; _days = days; getPostCode()}
+        "getResults" : function(postcode,radius,days,callback,done){_done = done;_callback = callback; _postcode=postcode; _radius= radius;_loop = 0; _days = days; getPostCode()}
     }
 
     return rightmove;
