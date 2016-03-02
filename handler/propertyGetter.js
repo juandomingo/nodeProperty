@@ -8,7 +8,7 @@ module.exports = function() {
       	//add more handlears whenever you need.
       	zooplaHandler.getResults(postcode.replace(" ","+"),radius, days, callback);
               
-    		//rightmoveHandler.getResults(postcode.replace(" ","+"),radius, days, callback);
+    		rightmoveHandler.getResults(postcode.replace(" ","+"),radius, days, callback);
       	}
   }
 

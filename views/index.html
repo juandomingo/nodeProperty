@@ -1,112 +1,110 @@
 <!DOCTYPE html>
-<html >
-  <head>
+<html>
+
+<head>
     <meta charset="UTF-8">
     <title>Solution for Long Drop Down Items</title>
     <script src="http://s.codepen.io/assets/libs/modernizr.js" type="text/javascript"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
 
-    
-    
-    
-        <link rel="stylesheet" href="/css/style.css">
+<body>
 
-    
-    
-    
-  </head>
-
-  <body>
-
-    <!--Made with Love by Larry Geams-->
-
-<h1>PROPERTY DATA SCRAPING</h1>
-<h2 id="queryType">no query selected</h2>
 <nav>
-<ul class="dropdown">
-<form action="">
-            postcode <input id="postcode" autocomplete="off" />
-            radius <input id="radius" autocomplete="off" />
-            days <input id="days" autocomplete="off" />
-            query name <input id="queryname" autocomplete="off" />
-            <input name="typeID" id="typeID" type="hidden">
-            <input name="queryID" id="queryID" type="hidden">
-            value min :<input id="valueMin" autocomplete="off" value='1'/>
-            value max :<input id="valueMax" autocomplete="off" value='9999999999' />
-            rooms :<input id="selectRooms" autocomplete="off" value='0' />
-            <button>Send</button>
-<div class="dropList">
+    <h1>PROPERTY DATA SCRAPING</h1>
+    
+    <ul class="dropdown">
 
-<select id="selectQuery" class="select" onchange=
-    "$('#queryID').val(this.options[this.selectedIndex].value);">
-   <option></option>
-</select>
+        <li class="drop"><a href="#">QUERY</a>
+            <ul class="sub_menu">
+    			<li><a id="QA" href="#">A</a></li>
+    			<li><a id="QB" >B</a></li>
+    		</ul>
+        </li>
 
-<select id="selectType" class="select" onchange=
-    "$('#typeID').val(this.options[this.selectedIndex].value);">
-   <option></option>
-</select>
+        <li class="drop"><a href="#">CONFIGURARION</a>
+        	<ul class="sub_menu">
+				<li><a href="#">ADD TIME</a></li>
+				<li><a href="#">DELETE TIME</a></li>
+				<li><a href="#">VIEW SCHEDULE</a></li>
+       		</ul>
+        </li>
 
-</div>
+        <li class="drop"><a href="#">SAVED QUERIES</a>
+        	<ul class="sub_menu">
+        		<li><a href="#">Not implemented</a></li>
+        	</ul>
+        </li>
 
-        </form>
-        	<li class="drop"><a href="#">QUERY</a>
-        		<ul class="sub_menu">
-							<li><a id="QA" href="#">A</a></li>
-							<li><a id="QB" >B</a></li>
-							<li><a id="QC" >C</a></li>
-							        		</ul>
-        	</li>
-        	<li class="drop"><a href="#">CONFIGURARION</a>
-        		<ul class="sub_menu">
-							<li><a href="#">ADD TIME</a></li>
-							<li><a href="#">DELETE TIME</a></li>
-							<li><a href="#">VIEW SCHEDULE</a></li>
-
-							
-        		</ul>
-        	</li>
-        	<li class="drop"><a href="#">SAVED QUERIES</a>
-        		<ul class="sub_menu">
-        			<li><a href="#">Not implemented</a></li>
-
-        		</ul>
-        	</li>
-        	<li><a id="about" href="#">ABOUT</a>
-        	</li>
+        <li><a id="about" href="#">ABOUT</a></li>
         </ul>
+
+    <div><p id="queryType">Please select a Query to begin</p></div>
+    <form action="">
+        <div class="queryA"> <p>postcode</p><input id="postcode" autocomplete="off"/></div>
+        <div class="queryA"> <p>radius</p> <input id="radius" autocomplete="off" value='1'/></div>
+        <div class="queryA"> <p>days</p> <input id="days" autocomplete="off" value='7' /></div>
+        <div class="queryA"> <p>query name</p> <input id="queryname" autocomplete="off"/></div>
+        <input name="typeID" id="typeID" type="hidden">
+        <input name="queryID" id="queryID" type="hidden">
+        <div class="queryB"> <p>value min</p><input id="valueMin" autocomplete="off" value='1'/></div>
+        <div class="queryB">
+            <p>value max</p><input id="valueMax" autocomplete="off" value='999999999'/>
+        </div>
+
+
+        <div class="queryB"> <p>rooms</p><input id="selectRooms" autocomplete="off" value='0' /></div>
+
+        <div class="queryB"><p>Type of property</p>
+        <select id="selectType" class="queryB" onchange=
+            "$('#typeID').val(this.options[this.selectedIndex].value);">
+        </select>
+        </div>
+        <div class="queryB"><p>Query to use</p>
+        <select id="selectQuery" class="queryB" onchange=
+            "$('#queryID').val(this.options[this.selectedIndex].value);">
+        </select>
+        </div>
+        <button class="queryCommon">Send</button>
+    </div>
+
+    </form>
 </nav>
-<table id="messages" style="width:100%">
-<tr>
-    <th>Firstname</th>
-    <th>Lastname</th>
-    <th>Points</th>
-    <th>Firstname</th>
-    <th>Lastname</th>
-    <th>Points</th>
-  </tr>
-
-</table> 
-
+<div id="tablediv">
+    <table id="messages" class="queryB">
+        <tr>
+            <th>Postcode</th>
+            <th>Price</th>
+            <th>No. Bedrooms</th>
+            <th>Type Property</th>
+            <th>Date Listing</th>
+            <th>State Agent</th>
+            <th>Agent Postcode</th>
+        </tr>
+    </table> 
+</div>
     <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
 
         <script src="js/index.js"></script>
 <script>
+
+//FIRST CONFIGURATION
     var socket = io.connect('http://localhost:3000');
     var selected = "";
     var toShow = [];
     var queryBResult = [];
+    $('.queryB').hide();
+    $('.queryA').hide();
+    $('.queryCommon').hide();
 
-    $('form').submit(function(){
-        if(selected === "queryB"){
-            socket.emit(selected, {queryID : $('#queryID').val()});
-        }
-        else{
-            socket.emit(selected, {postcode : $('#postcode').val(), radius : $('#radius').val(),
-                                days : $('#days').val(), queryname : $('#queryname').val()});
-        }
-        return false;
-    });
+
+    
+//UTILS
+    var resetData = function(){
+        toShow = [];
+        queryBResult = [];
+    }
 
     var resetAndShow = function(){
         toShow = [];
@@ -116,16 +114,26 @@
                 toShow.push(queryBResult[i]);
             } 
         }
-        var table = document.getElementById("messages");
-        var head = " postcode    price   nobedrooms   type property    date listing   state agent    state agent postcode ";
-        $('#messages').append($('<tr class="messages">').text(head));
-        $('#messages').append($('<tr class="messages">').text(""));
+
         for (var i = toShow.length - 1; i >= 0; i--) {
-            var prop = toShow[i].postcode.name +"   "+ toShow[i].price +"   "+ toShow[i].nobedrooms +"   "+ toShow[i].type.type +"   "+ toShow[i].datelisting +"   "+toShow[i].stateagent.name +"   "+ toShow[i].stateagent.postcode.name;
-            $('#messages').prepend($('<tr class="messages">').text(prop));
+            showData(toShow[i]);
         }
     }
 
+
+    var showData = function(property){
+        $('#messages').append("<tr class='messages'>"+
+        "<td>"+property.postcode.name +"</td>"+
+        "<td>£"+property.price +"</td>"+
+        "<td>"+property.nobedrooms +"</td>"+
+        "<td>"+property.type.type +"</td>"+
+        "<td>"+property.datelisting +"</td>"+
+        "<td>"+property.stateagent.name +"</td>"+
+        "<td>"+property.stateagent.postcode.name +"</td>"+
+        "</tr>");
+    }
+
+//CHANGE SOMETHING HANDLERS
     $( "#selectRooms" ).change(function() {
         resetAndShow();
     });
@@ -143,7 +151,7 @@
     });
 
 
-
+//ENVENT SOCKET INT HANDLERS
     var isShowable = function(property){
         if (property.price >  $('#valueMin').val() && property.price < $('#valueMax').val())
             if (property.type.id == $('#typeID').val())
@@ -153,20 +161,13 @@
     }
 
     var handleQueryBResult = function(data){
-        //console.log(data);
         queryBResult.push(data);
-        if (isShowable(data)){
-            toShow.push(data);
-            $('#messages').prepend($('<li class="messages">').text(JSON.stringify(data)));
-        }    
+        resetAndShow();
     }
-
-
-
     socket.on('queryBResult', handleQueryBResult);
 
     var handleTypes = function(data){
-        $('#selectType').append("<option class='removible' value="+data.id+">Property type "+ data.type+" </option>");
+        $('#selectType').append("<option class='removible' value="+data.id+">"+ data.type+" </option>");
     }
     socket.on('getTypes', handleTypes);
 
@@ -175,15 +176,39 @@
     }
     socket.on('getQueries', handleQueries);
 
-    $('#QA').click(function(){selected = "queryA";$('#queryType').text(selected)});
+//CLICK HANDLERS
+    $('form').submit(function(){
+        resetAndShow();
+        resetData();
+        if(selected === "queryB"){
+            socket.emit(selected, {queryID : $('#queryID').val()});
+        }
+        else{
+            socket.emit(selected, {postcode : $('#postcode').val(), radius : $('#radius').val(),
+                                days : $('#days').val(), queryname : $('#queryname').val()});
+        }
+        return false;
+    });
+
+    $('#QA').click(function(){
+        selected = "queryA";
+        $('#queryType').text("Set a POSTCODE, RADIUS, max DAYS since the publication and a NAME for this query. Then click Send");
+        $('.queryB').hide();
+        $('.queryA').show();
+        $('.queryCommon').show();
+    });
+    
     $('#QB').click(function(){
-        queryBResult = [];
-        toShow = [];
+        resetData();
         $(".removible").remove();
-        $('#queryType').text(selected);
+        $(".messages").remove();
+        $('#queryType').text("Set a QUERY TO USE to filter");
         selected = "queryB";
         socket.emit("getTypesC","getTypes");
         socket.emit("getQueriesC","getQueries");
+        $('.queryA').hide();
+        $('.queryB').show();
+        $('.queryCommon').show();
     });
 
 
