@@ -9,15 +9,19 @@ module.exports = function() {
     var _webSiteID = 2;
     var _done;
     var _loop;
+
+
+    var fakehost = "http://www.rightmove.co.uk/"
     var _options = {
-        host: "www.rightmove.co.uk", 
-        port: 80,
+        host: "us-dc.proxymesh.com",
+       // host: "www.rightmove.co.uk", 
+        port:   31280,
         path: '',
         method: 'GET'
     };
 
     getPropertyValues = function(link){
-        _options.path = link;
+        _options.path = fakehost+link;
         var result = "";
         http.request(_options, function(res) {
 
@@ -33,8 +37,7 @@ module.exports = function() {
         }).end( );
     }
     function getQuery(newPostCode){
-
-        _options.path = "/property-for-sale/find.html?locationIdentifier="+ newPostCode+
+        _options.path = fakehost+"/property-for-sale/find.html?locationIdentifier="+ newPostCode+
         "&insId=3&maxDaysSinceAdded="+_days+"&radius="+ _radius+".0&index="+ (_loop*10);
   	     var result = "";
   	     http.request(_options, function(res) {
@@ -54,8 +57,9 @@ module.exports = function() {
     }
 
     getPostCode = function(){
-        _options.path = "/property-for-sale/search.html?searchLocation=" + _postcode +
+        _options.path = fakehost+"/property-for-sale/search.html?searchLocation=" + _postcode +
          "&locationIdentifier=&useLocationIdentifier=false&buy=For+sale";
+        console.log(_options.host+_options.path);
         var result = "";
         http.request(_options, function(res) {
             res.setEncoding('utf8');
@@ -65,7 +69,10 @@ module.exports = function() {
             });
 
             res.on('end',function(){
-                getQuery(parsePostCode(result));
+                console.log(result)
+                if ( (a = parsePostCode(result) ) !== null )
+                    {getQuery(a) }
+                else { _done()}
             });
         }).end();
     }
@@ -83,7 +90,7 @@ module.exports = function() {
         type = type.replace(/\]/,"");
 
 
-        nobed = "0";
+        nobed = bedRoomsMatcher(html);
         postcode = _postcode.replace("+", " ");
 
         agent = html.match(/(ontactagent-footer)[\s\S]{1,5000}(\<\/address)/)[0];
@@ -102,12 +109,12 @@ module.exports = function() {
 
         webSitePropertyID;
 
-        _callback ({type:type,bedroomno:nobed,firstprice: price ,firstdate : date, lastdate : date,postcode : postcode, agentname :agentN, agentpostCode :agentP, "webSiteID" : _webSiteID, 'webSitePropertyID' : webSitePropertyID });
+        _callback({type:type,bedroomno:nobed,firstprice: price ,firstdate : date, lastdate : date,postcode : postcode, agentname :agentN, agentpostCode :agentP, "webSiteID" : _webSiteID, 'webSitePropertyID' : webSitePropertyID });
     }
 
 
     var parsePostCode = function(html){
-        return (/(POSTCODE)\^\d*/).exec(html)[0];
+        return ((a =html.match(/(POSTCODE)\^\d*/) ) !== null ? a[0] : a);
     }
 
     var parsePropertiesLink = function(html){
@@ -158,7 +165,28 @@ module.exports = function() {
             'december' : '12'
         }
         return ""+ year + "-" + months[month] +"-" + day;
-    }   
+    } 
+
+    var bedRoomsMatcher = function(st1){
+
+        var getDistinct = function(a){
+            var distincts = [];
+            var count = 0;
+            for (var i = a.length - 1; i >= 0; i--) {
+                pushIfNew(a[i],distincts);
+            }
+            for (var i = distincts.length - 1; i >= 0; i--) {
+                count += ((a = distincts[i].match(/\d*/)) !== null  ? parseInt(a[0]) : 0);
+            }   
+            return count;
+        };
+
+        return ( (a = st1.match(/\d+\s(bedroom)/i)) !== null ? a[0].match(/\d*/)[0] : (
+            (a = st1.match(/(\d+\s\w+\s(bedroom)|\w+\s(bedroom))/g)) === null ? 0 :
+                getDistinct(a)
+            )  
+        );
+    }  
 
     var rightmove = {
         "getResults" : function(postcode,radius,days,callback,done){_done = done;_callback = callback; _postcode=postcode; _radius= radius;_loop = 0; _days = days; getPostCode()}

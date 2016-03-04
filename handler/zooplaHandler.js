@@ -9,12 +9,20 @@ module.exports = function() {
 	var _loop;
   	var _daysMilisec = 1000 * 60 * 60 * 24;
 
+
+
 	var options = {
 		host: "api.zoopla.co.uk", 
 		port: 80,
 		path: '',
 		method: 'GET'
+
 	};
+
+
+
+
+
 
 	var getQuery = function(callback){
 		//eg : E15+1DD
@@ -22,7 +30,6 @@ module.exports = function() {
 		var result = "";
 
 		http.request(options, function(res) {
-
 			console.log('STATUS: ' + res.statusCode);
 			res.setEncoding('utf8');
 			

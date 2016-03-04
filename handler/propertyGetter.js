@@ -7,7 +7,7 @@ module.exports = function() {
       "getPropInPostCode" : function(postcode, radius, days,callback){
       	//add more handlears whenever you need.
         var properties = [];
-        var handlers = 1;
+        var handlers = 2;
         var doneV = 0;
         var collect = function(data){
             properties.push(data);
