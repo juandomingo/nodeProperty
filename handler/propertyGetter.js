@@ -16,6 +16,7 @@ module.exports = function() {
           doneV++;
           if (doneV === handlers)
           {
+            console.log("hi");
             callback(properties);
           }
         }

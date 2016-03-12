@@ -1,0 +1,25 @@
+1. Rightmove data to be integrated into the search (avoiding duplicates with zoopla data) ! ALL WORKING GET THE PROP LINK
+2.  NO POST CODE !! DISTANCE TO POSTCODE ZOOPLA Y RIGHTMOVE
+3. SEE 2. MAYBE FOR ZOOPLA I CAN PRINT THE EXSACT LOCATION
+4. STATE AGENT NAME, THEN POSTCODE BY LOOKING UP THEIR WEBS. TRY PLOTTING THEM ON A MAP. 
+5. DELETE QUERIES
+6. What is the configuration menu? ???
+7. LOOK UP FOR A RANGE IN QUERY B
+
+8. How does the database work? Does it only search listings that are currently on Rightmove/Zoopla or does it store historical listings that have been sold? You previously said that the software would run every day and store into mySQL (see attached).
+9. Is there a way to group the results? For example, a table that ranks estate agents for how many listings they have
+10. LINK TO THEIR ZOOPLA/ RIGHTMOVE LINK
+
+
+6. I was thinking about the times during the day you could update the data from the database. This is not mandatory yet. And It might even be a problem. I think it will be better to update the query data if you are going to use it again after a day or if its a hot list. I mean, if you are going to use an old query again, I can update it only if it has passed one day.
+7.Yes, this is possible. I can include it in the next iteration.
+8.That is the configuration part I talked about in park 6. You see, each webpage have millions of properties. RightMove doesn’t have an API and they will ban people who make a lot of requests (as we are doing) and Zoopla let you use an API, but this API have limitations (100 queries per hour ). So that I think it is not truly possible to download the whole DB. Instead, I have implemented something that gather only the information you are interested in. This would be the information of query A. Whenever you make one of those queries the backend will go to the web page, scrap all that data requested and downloaded to the database. Then, whenever you make a query B the information is quickly gather because It is taken from the database. Another thing that I change is that now we are using SQLite, the reason for this change is that if we want to use MySQL, then It will be necessary to have a running MySQL server on your computer.
+9. You can over data taken from a QueryA. I can include it in the next release.
+
+
+
+6 - The issue here is if a property is listed for sale today and sells tomorrow, the listing will only be on the website for 2 days before being taken off the website. What is really important to me is knowing all the properties which have been listed in the previous x mths when I make a query.
+6 - Let me know what can be done here as building a database with historical listings is important.. what if I ran one search for a postcode in the middle of England and a 100 mile radius.. this would probably get all properties listed in England? Then I could use that data to run the query B from different postcodes.
+8 - See no.6
+9 - What do you mean 'you can over data'?
+10 - It would be great if you could add a column with these links
