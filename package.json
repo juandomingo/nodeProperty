@@ -8,7 +8,13 @@
     "mongoose":"latest",
     "socket.io":"latest",
     "sqlite3":"latest",
-    "jetty":"latest"
-  }
+    "jetty":"latest",
+    "lint":"latest"
+
+  },
+  "scripts": {
+    "lint": "*.js",
+   	"run" : "test.js"
+	}
 }
 

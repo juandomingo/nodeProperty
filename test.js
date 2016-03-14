@@ -1,10 +1,11 @@
 var handler = require('./handler/rightmoveHandler.js');
+var mongoHardler = require('./db/mongoDBHandler.js');
 
 var properties = [];
 var handlers = 1;
 var doneV = 0;
 var collect = function(data){
-            properties.push(data);
+            mongoHardler.saveRMrawData(data,console.log);
             //console.log(properties);
         }
 var done = function(){
@@ -40,6 +41,6 @@ getJsonArr(holis,callback);
 console.log(holis['resultCount'].replace(',',""));
 */
 
-handler.getResults(postcode,radius,days,collect,done);
+handler.getAll(collect,done);
 
 
